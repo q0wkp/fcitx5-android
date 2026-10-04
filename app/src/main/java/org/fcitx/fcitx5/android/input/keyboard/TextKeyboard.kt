@@ -22,8 +22,9 @@ import splitties.views.imageResource
 @SuppressLint("ViewConstructor")
 class TextKeyboard(
     context: Context,
-    theme: Theme
-) : BaseKeyboard(context, theme, Layout) {
+    theme: Theme,
+    layout: List<List<KeyDef>> = Layout
+) : BaseKeyboard(context, theme, layout) {
 
     enum class CapsState { None, Once, Lock }
 
