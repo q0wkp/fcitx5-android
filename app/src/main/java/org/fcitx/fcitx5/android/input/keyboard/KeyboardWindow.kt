@@ -66,12 +66,14 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
 
     private lateinit var keyboardView: FrameLayout
 
-    private var textLayout = loadTextLayout()
+    private var textLayout: List<List<KeyDef>>? = null
     private var punctuationMapping: Map<String, String> = mapOf()
 
     private val keyboards: HashMap<String, BaseKeyboard> by lazy {
+        val layout = loadTextLayout(fcitx.runImmediately { inputMethodEntryCached })
+        textLayout = layout
         hashMapOf(
-            TextKeyboard.Name to TextKeyboard(context, theme, textLayout),
+            TextKeyboard.Name to TextKeyboard(context, theme, layout),
             NumberKeyboard.Name to NumberKeyboard(context, theme)
         )
     }
@@ -142,11 +144,13 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
         }
     }
 
-    private fun loadTextLayout() =
-        KeyboardLayoutManager.load(KeyboardLayoutManager.DEFAULT) ?: TextKeyboard.Layout
+    private fun loadTextLayout(ime: InputMethodEntry) =
+        KeyboardLayoutManager.load(ime.uniqueName)
+            ?: KeyboardLayoutManager.load(KeyboardLayoutManager.DEFAULT)
+            ?: TextKeyboard.Layout
 
-    private fun updateTextLayout() {
-        val layout = loadTextLayout()
+    private fun updateTextLayout(ime: InputMethodEntry) {
+        val layout = loadTextLayout(ime)
         if (layout === textLayout) return
         textLayout = layout
         val attached = currentKeyboardName == TextKeyboard.Name
@@ -158,7 +162,7 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     }
 
     override fun onStartInput(info: EditorInfo, capFlags: CapabilityFlags) {
-        updateTextLayout()
+        updateTextLayout(fcitx.runImmediately { inputMethodEntryCached })
         val targetLayout = when (info.inputType and InputType.TYPE_MASK_CLASS) {
             InputType.TYPE_CLASS_NUMBER -> NumberKeyboard.Name
             InputType.TYPE_CLASS_PHONE -> NumberKeyboard.Name
@@ -168,6 +172,7 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     }
 
     override fun onImeUpdate(ime: InputMethodEntry) {
+        updateTextLayout(ime)
         currentKeyboard?.onInputMethodUpdate(ime)
     }
 
