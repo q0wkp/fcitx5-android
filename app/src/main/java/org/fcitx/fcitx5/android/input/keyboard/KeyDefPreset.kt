@@ -43,12 +43,14 @@ class AlphabetKey(
     val character: String,
     val punctuation: String,
     variant: Variant = Variant.Normal,
-    popup: Array<Popup>? = null
+    popup: Array<Popup>? = null,
+    percentWidth: Float = 0.1f
 ) : KeyDef(
     Appearance.AltText(
         displayText = character,
         altText = punctuation,
         textSize = 23f,
+        percentWidth = percentWidth,
         variant = variant
     ),
     setOf(
@@ -93,11 +95,11 @@ class AlphabetDigitKey(
     )
 }
 
-class CapsKey : KeyDef(
+class CapsKey(percentWidth: Float = 0.15f) : KeyDef(
     Appearance.Image(
         src = R.drawable.ic_capslock_none,
         viewId = R.id.button_caps,
-        percentWidth = 0.15f,
+        percentWidth = percentWidth,
         variant = Variant.Alternative
     ),
     setOf(
@@ -142,9 +144,10 @@ class BackspaceKey(
     )
 )
 
-class QuickPhraseKey : KeyDef(
+class QuickPhraseKey(percentWidth: Float = 0.1f) : KeyDef(
     Appearance.Image(
         src = R.drawable.ic_baseline_format_quote_24,
+        percentWidth = percentWidth,
         variant = Variant.Alternative,
         viewId = R.id.button_quickphrase
     ),
@@ -192,9 +195,10 @@ class CommaKey(
     )
 )
 
-class LanguageKey : KeyDef(
+class LanguageKey(percentWidth: Float = 0.1f) : KeyDef(
     Appearance.Image(
         src = R.drawable.ic_baseline_language_24,
+        percentWidth = percentWidth,
         variant = Variant.AltForeground,
         viewId = R.id.button_lang
     ),

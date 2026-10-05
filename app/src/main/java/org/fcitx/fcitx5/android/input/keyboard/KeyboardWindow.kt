@@ -14,6 +14,7 @@ import androidx.transition.Slide
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.CapabilityFlags
 import org.fcitx.fcitx5.android.core.InputMethodEntry
+import org.fcitx.fcitx5.android.data.keyboard.KeyboardLayoutManager
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.input.bar.KawaiiBarComponent
 import org.fcitx.fcitx5.android.input.broadcast.InputBroadcastReceiver
@@ -65,9 +66,12 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
 
     private lateinit var keyboardView: FrameLayout
 
+    private var textLayout = loadTextLayout()
+    private var punctuationMapping: Map<String, String> = mapOf()
+
     private val keyboards: HashMap<String, BaseKeyboard> by lazy {
         hashMapOf(
-            TextKeyboard.Name to TextKeyboard(context, theme),
+            TextKeyboard.Name to TextKeyboard(context, theme, textLayout),
             NumberKeyboard.Name to NumberKeyboard(context, theme)
         )
     }
@@ -138,7 +142,23 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
         }
     }
 
+    private fun loadTextLayout() =
+        KeyboardLayoutManager.load(KeyboardLayoutManager.DEFAULT) ?: TextKeyboard.Layout
+
+    private fun updateTextLayout() {
+        val layout = loadTextLayout()
+        if (layout === textLayout) return
+        textLayout = layout
+        val attached = currentKeyboardName == TextKeyboard.Name
+        if (attached) detachCurrentLayout()
+        keyboards[TextKeyboard.Name] = TextKeyboard(context, theme, layout).also {
+            it.onPunctuationUpdate(punctuationMapping)
+        }
+        if (attached) attachLayout(TextKeyboard.Name)
+    }
+
     override fun onStartInput(info: EditorInfo, capFlags: CapabilityFlags) {
+        updateTextLayout()
         val targetLayout = when (info.inputType and InputType.TYPE_MASK_CLASS) {
             InputType.TYPE_CLASS_NUMBER -> NumberKeyboard.Name
             InputType.TYPE_CLASS_PHONE -> NumberKeyboard.Name
@@ -152,6 +172,7 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     }
 
     override fun onPunctuationUpdate(mapping: Map<String, String>) {
+        punctuationMapping = mapping
         currentKeyboard?.onPunctuationUpdate(mapping)
     }
 

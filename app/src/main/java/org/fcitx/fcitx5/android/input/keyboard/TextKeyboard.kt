@@ -22,8 +22,9 @@ import splitties.views.imageResource
 @SuppressLint("ViewConstructor")
 class TextKeyboard(
     context: Context,
-    theme: Theme
-) : BaseKeyboard(context, theme, Layout) {
+    theme: Theme,
+    layout: List<List<KeyDef>> = Layout
+) : BaseKeyboard(context, theme, layout) {
 
     enum class CapsState { None, Once, Lock }
 
@@ -76,12 +77,13 @@ class TextKeyboard(
         )
     }
 
-    val caps: ImageKeyView by lazy { findViewById(R.id.button_caps) }
-    val backspace: ImageKeyView by lazy { findViewById(R.id.button_backspace) }
-    val quickphrase: ImageKeyView by lazy { findViewById(R.id.button_quickphrase) }
-    val lang: ImageKeyView by lazy { findViewById(R.id.button_lang) }
-    val space: TextKeyView by lazy { findViewById(R.id.button_space) }
-    val `return`: ImageKeyView by lazy { findViewById(R.id.button_return) }
+    // these keys may be absent in custom layouts
+    val caps: ImageKeyView? by lazy { findViewById(R.id.button_caps) }
+    val backspace: ImageKeyView? by lazy { findViewById(R.id.button_backspace) }
+    val quickphrase: ImageKeyView? by lazy { findViewById(R.id.button_quickphrase) }
+    val lang: ImageKeyView? by lazy { findViewById(R.id.button_lang) }
+    val space: TextKeyView? by lazy { findViewById(R.id.button_space) }
+    val `return`: ImageKeyView? by lazy { findViewById(R.id.button_return) }
 
     private val showLangSwitchKey = AppPrefs.getInstance().keyboard.showLangSwitchKey
 
@@ -156,7 +158,7 @@ class TextKeyboard(
     }
 
     override fun onReturnDrawableUpdate(returnDrawable: Int) {
-        `return`.img.imageResource = returnDrawable
+        `return`?.img?.imageResource = returnDrawable
     }
 
     override fun onPunctuationUpdate(mapping: Map<String, String>) {
@@ -165,7 +167,7 @@ class TextKeyboard(
     }
 
     override fun onInputMethodUpdate(ime: InputMethodEntry) {
-        space.mainText.text = buildString {
+        space?.mainText?.text = buildString {
             append(ime.displayName)
             ime.subMode.run { label.ifEmpty { name.ifEmpty { null } } }?.let { append(" ($it)") }
         }
@@ -220,7 +222,7 @@ class TextKeyboard(
     }
 
     private fun updateCapsButtonIcon() {
-        caps.img.apply {
+        caps?.img?.apply {
             imageResource = when (capsState) {
                 CapsState.None -> R.drawable.ic_capslock_none
                 CapsState.Once -> R.drawable.ic_capslock_once
@@ -230,7 +232,7 @@ class TextKeyboard(
     }
 
     private fun updateLangSwitchKey(visible: Boolean) {
-        lang.visibility = if (visible) View.VISIBLE else View.GONE
+        lang?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     private fun updateAlphabetKeys() {
